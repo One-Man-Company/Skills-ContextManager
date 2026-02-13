@@ -17,6 +17,7 @@ A self-hosted web application for managing AI skills, workflows, and contexts wi
   - 🐙 **GitHub**: Clone from GitHub repositories
   - ⚡ **Skills.sh**: Import from Skills.sh registry
 - **AI Description Generation**: Auto-generate skill descriptions using AI APIs
+- **Secure API Key Storage**: API keys stored with file mode 0600 (owner-only)
 - **Settings Profiles**: Save and load configuration presets
 - **Search & Filter**: Smart search, sort, favorites, active/inactive filters
 - **Token Counting**: Track context size in tokens
@@ -113,6 +114,7 @@ Skill-ContextManager/
 ```
 ~/contextmanager/
 ├── master-config.json              # {"active_hub": "...", "hubs": [...]}
+├── ai-settings.json                # AI settings (mode 0600 - secure)
 └── hubs/
     └── MySkillHub/
         ├── config.json             # Context cells, settings
@@ -186,10 +188,13 @@ skill-name/
 | GET/POST | `/api/skills` | List/Create skills |
 | GET/POST | `/api/workflows` | List/Create workflows |
 | DELETE | `/api/skills/:name` | Delete skill |
+| DELETE | `/api/workflows/:name` | Delete workflow |
 | POST | `/api/skills/import/github` | Import from GitHub |
 | POST | `/api/skills/import/skillssh` | Import from Skills.sh |
 | POST | `/api/skills/import/files` | Upload folder |
-| POST | `/api/skills/generate-description` | AI generate description |
+| POST | `/api/skills/generate-description` | AI generate skill description |
+| POST | `/api/workflows/generate-description` | AI generate workflow description |
+| GET/POST | `/api/ai-settings` | Get/Save AI settings (secure storage) |
 
 ### Hubs
 | Method | Endpoint | Description |
