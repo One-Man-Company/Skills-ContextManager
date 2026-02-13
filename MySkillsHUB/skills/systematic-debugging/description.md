@@ -1,0 +1,1 @@
+Systematic 4-phase debugging methodology with root cause analysis and evidence-based verification. Prevents random guessing and ensures proper problem understanding.

@@ -1,0 +1,1 @@
+Internationalization and localization patterns for making applications translatable. Covers detecting hardcoded strings, managing translations, locale files, and RTL support.

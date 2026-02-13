@@ -1,0 +1,1 @@
+Architectural decision-making framework for analyzing requirements, evaluating trade-offs, and documenting decisions (ADRs). Use when designing systems, choosing patterns, or making high-level technical choices.

@@ -1,0 +1,1 @@
+Workflow for executing complex software development tasks with structured planning, verification, subagent collaboration, and quality-focused standards.

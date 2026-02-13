@@ -1,0 +1,1 @@
+Web application testing principles covering E2E testing, Playwright, deep audit strategies, and test organization for comprehensive coverage.

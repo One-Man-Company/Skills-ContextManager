@@ -1,0 +1,1 @@
+Structured task planning with clear breakdowns, dependencies, and verification criteria. Creates focused, project-specific plans with specific action items and verification steps.

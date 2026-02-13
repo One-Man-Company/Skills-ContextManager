@@ -1,0 +1,1 @@
+Multi-agent orchestration patterns for coordinating specialized AI agents. Enables parallel execution of domain-specific tasks requiring different expertise areas.

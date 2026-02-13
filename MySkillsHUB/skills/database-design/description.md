@@ -1,0 +1,1 @@
+Database design principles covering schema design, indexing, ORM selection, and optimization strategies for various database systems.

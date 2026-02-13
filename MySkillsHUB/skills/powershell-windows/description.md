@@ -1,0 +1,1 @@
+PowerShell Windows patterns covering critical pitfalls, operator syntax, error handling, and best practices for Windows PowerShell scripting.

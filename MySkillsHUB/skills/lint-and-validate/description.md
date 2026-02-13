@@ -1,0 +1,1 @@
+Automatic quality control, linting, and static analysis procedures for code validation. Ensures syntax correctness and project standards compliance after every code modification.

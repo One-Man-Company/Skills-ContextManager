@@ -1,0 +1,1 @@
+Test-Driven Development workflow following the RED-GREEN-REFACTOR cycle. Emphasizes writing tests first, minimal code implementation, and continuous refactoring.

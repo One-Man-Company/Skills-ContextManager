@@ -1,0 +1,1 @@
+Performance profiling principles covering measurement, analysis, and optimization techniques. Includes Core Web Vitals, profiling workflows, and bottleneck identification.

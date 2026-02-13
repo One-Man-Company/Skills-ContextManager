@@ -1,0 +1,1 @@
+SEO fundamentals covering E-E-A-T framework, Core Web Vitals, technical SEO, content optimization, and schema markup principles.

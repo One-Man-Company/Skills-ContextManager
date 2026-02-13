@@ -1,0 +1,1 @@
+Tailwind CSS v4 patterns covering CSS-first configuration, container queries, modern layouts, and design token architecture for utility-first styling.
