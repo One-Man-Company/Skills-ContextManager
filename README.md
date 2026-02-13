@@ -1,5 +1,7 @@
 # Skill-ContextManager & MCP Server
 
+[![GitHub](https://img.shields.io/badge/GitHub-One--Man--Company%2FSkills--ContextManager-blue)](https://github.com/One-Man-Company/Skills-ContextManager)
+
 A self-hosted web application for managing AI skills, workflows, and contexts with full MCP (Model Context Protocol) integration. Organize, manage, and dynamically load specialized knowledge bases into any AI Agent just by toggling your Skills On/Off in simple local hosted WEB UI.
 
 ## Features
@@ -32,6 +34,10 @@ A self-hosted web application for managing AI skills, workflows, and contexts wi
 ## Quick Start
 
 ```bash
+# Clone the repository
+git clone https://github.com/One-Man-Company/Skills-ContextManager.git
+cd Skills-ContextManager
+
 # Install everything and generate MCP config
 ./setup.sh
 
@@ -65,6 +71,7 @@ Add this to your AI Agent's MCP settings file.
 |-------|-------|
 | Name | Skills-ContextManager |
 | Description | Web UI for managing AI skills with MCP integration |
+| Repository | https://github.com/One-Man-Company/Skills-ContextManager |
 | Command | `[path]/Skills-MCP/.venv/bin/python3` |
 | Args | `-u [path]/Skills-MCP/mcp_server.py` |
 
