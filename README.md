@@ -42,7 +42,8 @@ A self-hosted web application for managing AI skills, workflows, and contexts wi
 git clone https://github.com/One-Man-Company/Skills-ContextManager.git
 cd Skills-ContextManager
 
-# Install everything and copy starter skills to library
+# Make setup script executable and run it
+chmod +x setup.sh
 ./setup.sh
 
 # Start web application
