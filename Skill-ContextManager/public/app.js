@@ -13,7 +13,7 @@ let currentLibraryTab = "skills";
 let libraryFavFilter = false;
 let libraryActiveFilter = null; // null = all, true = active, false = inactive
 let favorites = JSON.parse(localStorage.getItem('library-favorites') || '{}');
-let aiSettings = JSON.parse(localStorage.getItem('ai-settings') || '{}');
+let aiSettings = { url: "", model: "", hasApiKey: false, maskedApiKey: "" };
 let librarySearchInDesc = false;
 
 // ── Editor State ──
@@ -1167,7 +1167,7 @@ function renderWorkflows() {
           ${!hasDescription ? `<div class="missing-desc-warning">description.md is missing</div>` : ""}
         </div>
         <div class="item-card-actions">
-          ${!hasDescription ? `<button class="btn btn-sm btn-warning" onclick="event.stopPropagation(); createWorkflowDescriptionMd('${escapeAttr(workflow.name)}')">Create</button>` : ""}
+          ${!hasDescription ? `<button class="btn btn-sm btn-warning" onclick="event.stopPropagation(); createWorkflowDescriptionMd('${escapeAttr(workflow.name)}')">Create</button><button class="btn btn-sm" onclick="event.stopPropagation(); showGenerateWorkflowDescDialog('${escapeAttr(workflow.name)}')">Generate</button>` : ""}
           <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); deleteLibraryWorkflow('${escapeAttr(workflow.name)}')" title="Delete Workflow">🗑</button>
         </div>
       </div>`;
@@ -2105,14 +2105,18 @@ async function createDescriptionMd(skillName) {
   }
 }
 
-function maskApiKey(key) {
-  if (!key || key.length <= 8) return key || '';
-  return key.slice(0, -8) + '********';
+async function loadAISettings() {
+  try {
+    aiSettings = await api('/api/ai-settings');
+  } catch (e) {
+    console.error('Failed to load AI settings:', e);
+    aiSettings = { url: '', model: '', hasApiKey: false, maskedApiKey: '' };
+  }
 }
 
 function showGenerateDescDialog(skillName) {
-  const savedKey = aiSettings.apiKey || '';
-  const maskedKey = savedKey ? maskApiKey(savedKey) : '';
+  const hasKey = aiSettings.hasApiKey;
+  const maskedKey = aiSettings.maskedApiKey || '';
   
   showDialog(`
     <h3>Generate Description for "${escapeHtml(skillName)}"</h3>
@@ -2121,16 +2125,16 @@ function showGenerateDescDialog(skillName) {
     </p>
     <div class="form-group">
       <label>AI Provider URL</label>
-      <input type="text" id="ai-url" value="${aiSettings.url || 'https://openrouter.ai/api/v1/chat/completions'}" placeholder="AI API endpoint">
+      <input type="text" id="ai-url" value="${escapeHtml(aiSettings.url || 'https://openrouter.ai/api/v1/chat/completions')}" placeholder="AI API endpoint">
     </div>
     <div class="form-group">
       <label>Model</label>
-      <input type="text" id="ai-model" value="${aiSettings.model || 'openrouter/free'}" placeholder="Model name">
+      <input type="text" id="ai-model" value="${escapeHtml(aiSettings.model || 'openrouter/free')}" placeholder="Model name">
     </div>
     <div class="form-group">
-      <label>API Key ${savedKey ? '(saved)' : ''}</label>
-      <input type="password" id="ai-key" value="${savedKey}" placeholder="Your API key" autocomplete="off">
-      ${savedKey ? `<small style="color: var(--overlay0);">Saved: ${maskedKey}</small>` : ''}
+      <label>API Key ${hasKey ? '(saved - leave empty to keep)' : ''}</label>
+      <input type="password" id="ai-key" placeholder="${hasKey ? 'Leave empty to use saved key' : 'Your API key'}" autocomplete="off">
+      ${hasKey ? `<small style="color: var(--overlay0);">Saved: ${escapeHtml(maskedKey)}</small>` : ''}
     </div>
     <div class="dialog-actions">
       <button class="btn" onclick="closeDialog()">Cancel</button>
@@ -2144,13 +2148,16 @@ async function generateDescription(skillName) {
   const model = document.getElementById('ai-model')?.value?.trim();
   const apiKey = document.getElementById('ai-key')?.value?.trim();
   
-  if (!url || !model || !apiKey) {
-    return showToast('Please fill all fields', 'error');
+  if (!url || !model) {
+    return showToast('URL and model are required', 'error');
   }
   
-  // Save settings
-  aiSettings = { url, model, apiKey };
-  localStorage.setItem('ai-settings', JSON.stringify(aiSettings));
+  // Save settings to server (apiKey can be empty if already saved)
+  try {
+    await api('/api/ai-settings', 'POST', { url, model, apiKey });
+  } catch (e) {
+    return showToast('Failed to save settings: ' + e.message, 'error');
+  }
   
   closeDialog();
   
@@ -2171,11 +2178,88 @@ async function generateDescription(skillName) {
       skillName,
       aiUrl: url,
       model,
-      apiKey
+      apiKey: apiKey || undefined // Let server use saved key if empty
     });
     
     showToast(`Description generated for ${skillName}`, 'success');
     await loadLibrary();
+    await loadAISettings(); // Refresh settings to get updated masked key
+  } catch (e) {
+    showToast(`Failed to generate: ${e.message}`, 'error');
+  } finally {
+    loadingOverlay.remove();
+  }
+}
+
+function showGenerateWorkflowDescDialog(workflowName) {
+  const hasKey = aiSettings.hasApiKey;
+  const maskedKey = aiSettings.maskedApiKey || '';
+  
+  showDialog(`
+    <h3>Generate Description for "${escapeHtml(workflowName)}"</h3>
+    <p style="font-size: 12px; color: var(--overlay0); margin-bottom: 12px;">
+      AI will analyze workflow files and generate description.md
+    </p>
+    <div class="form-group">
+      <label>AI Provider URL</label>
+      <input type="text" id="ai-url" value="${escapeHtml(aiSettings.url || 'https://openrouter.ai/api/v1/chat/completions')}" placeholder="AI API endpoint">
+    </div>
+    <div class="form-group">
+      <label>Model</label>
+      <input type="text" id="ai-model" value="${escapeHtml(aiSettings.model || 'openrouter/free')}" placeholder="Model name">
+    </div>
+    <div class="form-group">
+      <label>API Key ${hasKey ? '(saved - leave empty to keep)' : ''}</label>
+      <input type="password" id="ai-key" placeholder="${hasKey ? 'Leave empty to use saved key' : 'Your API key'}" autocomplete="off">
+      ${hasKey ? `<small style="color: var(--overlay0);">Saved: ${escapeHtml(maskedKey)}</small>` : ''}
+    </div>
+    <div class="dialog-actions">
+      <button class="btn" onclick="closeDialog()">Cancel</button>
+      <button class="btn btn-primary" onclick="generateWorkflowDescription('${escapeAttr(workflowName)}')">Generate</button>
+    </div>
+  `);
+}
+
+async function generateWorkflowDescription(workflowName) {
+  const url = document.getElementById('ai-url')?.value?.trim();
+  const model = document.getElementById('ai-model')?.value?.trim();
+  const apiKey = document.getElementById('ai-key')?.value?.trim();
+  
+  if (!url || !model) {
+    return showToast('URL and model are required', 'error');
+  }
+  
+  // Save settings to server
+  try {
+    await api('/api/ai-settings', 'POST', { url, model, apiKey });
+  } catch (e) {
+    return showToast('Failed to save settings: ' + e.message, 'error');
+  }
+  
+  closeDialog();
+  
+  const loadingOverlay = document.createElement('div');
+  loadingOverlay.id = 'loading-overlay';
+  loadingOverlay.innerHTML = `
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Generating description...</div>
+      <div class="loading-hint">This may take a moment</div>
+    </div>
+  `;
+  document.body.appendChild(loadingOverlay);
+  
+  try {
+    const result = await api('/api/workflows/generate-description', 'POST', {
+      workflowName,
+      aiUrl: url,
+      model,
+      apiKey: apiKey || undefined
+    });
+    
+    showToast(`Description generated for ${workflowName}`, 'success');
+    await loadWorkflows();
+    await loadAISettings();
   } catch (e) {
     showToast(`Failed to generate: ${e.message}`, 'error');
   } finally {
@@ -2304,5 +2388,6 @@ function setupPanelResizing() {
   await loadContexts();
   await loadLibrary();
   await loadSettingsProfilesList();
+  await loadAISettings();
   setupPanelResizing();
 })();
