@@ -1,0 +1,20 @@
+DEBUG: Server v3.0 started with debug logging
+Context Manager Web running at http://localhost:3000
+Storage: /home/zoltanas/contextmanager
+DEBUG: File import request. Body keys: skillName,paths
+DEBUG: Importing skill "pages". Files: 7, Paths: 7
+DEBUG: Processing file 0: tmp=/tmp/9e1d8d8e6475af1bf68514e198c5b5fb, dest=/home/zoltanas/contextmanager/skills/pages/Register.tsx
+DEBUG: EXDEV detected for /tmp/9e1d8d8e6475af1bf68514e198c5b5fb -> /home/zoltanas/contextmanager/skills/pages/Register.tsx. Using copy+unlink.
+DEBUG: Processing file 1: tmp=/tmp/3daff3f5825dc332c126a2cd69dbb971, dest=/home/zoltanas/contextmanager/skills/pages/ProjectDetail.tsx
+DEBUG: EXDEV detected for /tmp/3daff3f5825dc332c126a2cd69dbb971 -> /home/zoltanas/contextmanager/skills/pages/ProjectDetail.tsx. Using copy+unlink.
+DEBUG: Processing file 2: tmp=/tmp/3ff763e433e3aa14e25494807d6027a2, dest=/home/zoltanas/contextmanager/skills/pages/Login.tsx
+DEBUG: EXDEV detected for /tmp/3ff763e433e3aa14e25494807d6027a2 -> /home/zoltanas/contextmanager/skills/pages/Login.tsx. Using copy+unlink.
+DEBUG: Processing file 3: tmp=/tmp/decea3ede35b3ed94060534116ceb757, dest=/home/zoltanas/contextmanager/skills/pages/DefectDetail.tsx
+DEBUG: EXDEV detected for /tmp/decea3ede35b3ed94060534116ceb757 -> /home/zoltanas/contextmanager/skills/pages/DefectDetail.tsx. Using copy+unlink.
+DEBUG: Processing file 4: tmp=/tmp/4f349d1231647872bf82b6572d785b2f, dest=/home/zoltanas/contextmanager/skills/pages/Defects.tsx
+DEBUG: EXDEV detected for /tmp/4f349d1231647872bf82b6572d785b2f -> /home/zoltanas/contextmanager/skills/pages/Defects.tsx. Using copy+unlink.
+DEBUG: Processing file 5: tmp=/tmp/19ed44b975d2b6b5b49248120df3f187, dest=/home/zoltanas/contextmanager/skills/pages/Dashboard.tsx
+DEBUG: EXDEV detected for /tmp/19ed44b975d2b6b5b49248120df3f187 -> /home/zoltanas/contextmanager/skills/pages/Dashboard.tsx. Using copy+unlink.
+DEBUG: Processing file 6: tmp=/tmp/3e4f06af85d06be0529528b99f1b5a93, dest=/home/zoltanas/contextmanager/skills/pages/Projects.tsx
+DEBUG: EXDEV detected for /tmp/3e4f06af85d06be0529528b99f1b5a93 -> /home/zoltanas/contextmanager/skills/pages/Projects.tsx. Using copy+unlink.
+DEBUG: Import successful for pages

@@ -1,0 +1,1691 @@
+/* ═══════════════════════════════════════════════════════
+   Context Manager Web — Catppuccin Mocha Dark Theme
+   ═══════════════════════════════════════════════════════ */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+:root {
+    /* Catppuccin Mocha Palette */
+    --base: #1e1e2e;
+    --mantle: #181825;
+    --crust: #11111b;
+    --surface0: #313244;
+    --surface1: #45475a;
+    --surface2: #585b70;
+    --overlay0: #6c7086;
+    --overlay1: #7f849c;
+    --text: #cdd6f4;
+    --subtext0: #a6adc8;
+    --subtext1: #bac2de;
+    --lavender: #b4befe;
+    --blue: #89b4fa;
+    --sapphire: #74c7ec;
+    --sky: #89dceb;
+    --teal: #94e2d5;
+    --green: #a6e3a1;
+    --yellow: #f9e2af;
+    --peach: #fab387;
+    --maroon: #eba0ac;
+    --red: #f38ba8;
+    --mauve: #cba6f7;
+    
+    /* Panel widths */
+    --panel-library: 320px;
+    --panel-context: 280px;
+    --pink: #f5c2e7;
+    --flamingo: #f2cdcd;
+    --rosewater: #f5e0dc;
+
+    /* Semantic Colors */
+    --bg-primary: var(--base);
+    --bg-secondary: var(--mantle);
+    --bg-card: var(--surface0);
+    --bg-card-hover: var(--surface1);
+    --border: var(--surface1);
+    --accent: var(--lavender);
+    --accent-dim: rgba(180, 190, 254, 0.15);
+    --success: var(--green);
+    --dynamic-color: var(--mauve);
+
+    /* Sizing */
+    --panel-gap: 1px;
+    --radius: 10px;
+    --radius-sm: 6px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family:
+        "Inter",
+        -apple-system,
+        BlinkMacSystemFont,
+        sans-serif;
+    background: var(--crust);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--surface2);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--overlay0);
+}
+
+/* ═══════════════ APP LAYOUT ═══════════════ */
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* ── Top Bar ── */
+.top-bar {
+    background: var(--mantle);
+    border-bottom: 1px solid var(--surface0);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 44px;
+}
+
+.top-bar h1 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.5px;
+}
+
+.top-bar h1 span {
+    color: var(--lavender);
+}
+
+.top-bar-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.skillhub-selector {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.skillhub-selector select {
+    width: 160px;
+    font-size: 11px;
+    padding: 4px 8px;
+}
+
+/* ── Main Content: 3 panels with separators ── */
+.main-content {
+    display: grid;
+    grid-template-columns: var(--panel-library) 4px var(--panel-context) 4px minmax(200px, 1fr);
+    gap: 0;
+    overflow: hidden;
+    background: var(--crust);
+}
+
+/* ── Panel Base ── */
+.panel {
+    background: var(--bg-primary);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid var(--surface0);
+    flex-shrink: 0;
+}
+
+.panel-header h2 {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--subtext0);
+    margin-bottom: 8px;
+}
+
+.panel-context-name {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--subtext0);
+}
+
+
+.panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px;
+}
+
+/* Empty state styling */
+.skill-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 20px;
+    height: 100%;
+    min-height: 200px;
+}
+
+.skill-empty-state .empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.8;
+}
+
+.skill-empty-state p {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 12px 0;
+}
+
+.skill-empty-state .hint {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--subtext0);
+    max-width: 280px;
+    line-height: 1.5;
+}
+
+/* Revert panel-body to original (remove overflow-x: visible) */
+.panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px;
+}
+
+.panel-footer {
+    padding: 6px 14px;
+    border-top: 1px solid var(--surface0);
+    font-size: 11px;
+    color: var(--overlay1);
+    flex-shrink: 0;
+    background: var(--bg-primary);
+}
+
+/* ── Search Input ── */
+.search-input {
+    width: 100%;
+    background: var(--surface0);
+    border: 1px solid var(--surface1);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+.search-input::placeholder {
+    color: var(--overlay0);
+}
+
+.search-input:focus {
+    border-color: var(--lavender);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+/* ═══════════════ BUTTONS ═══════════════ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: inherit;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--surface1);
+    background: var(--surface0);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn:hover {
+    background: var(--surface1);
+    border-color: var(--surface2);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--surface0);
+    border-color: var(--surface1);
+}
+
+.btn-primary {
+    background: var(--lavender);
+    color: var(--crust);
+    border-color: var(--lavender);
+}
+
+.btn-primary:hover {
+    background: var(--blue);
+    border-color: var(--blue);
+}
+
+.btn-danger {
+    color: var(--red);
+    border-color: rgba(243, 139, 168, 0.3);
+}
+
+.btn-danger:hover {
+    background: rgba(243, 139, 168, 0.15);
+    border-color: var(--red);
+}
+
+.btn-icon {
+    padding: 4px;
+    width: 24px;
+    height: 24px;
+    justify-content: center;
+    color: var(--overlay0);
+    border: none;
+    background: transparent;
+}
+
+.btn-icon:hover {
+    background: var(--surface1);
+    color: var(--text);
+}
+
+.btn-sm {
+    padding: 3px 8px;
+    font-size: 10px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* ═══════════════ ITEM CARD ═══════════════ */
+
+.item-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    margin-bottom: 2px;
+    position: relative;
+}
+
+.item-card:hover {
+    background: var(--bg-card);
+    border-color: var(--surface1);
+}
+
+.item-card.active {
+    background: var(--accent-dim);
+    border-color: var(--lavender);
+}
+
+.item-card.disabled {
+    opacity: 0.45;
+}
+
+.item-card-info {
+    flex: 1;
+    min-width: 0;
+    margin-right: 40px; /* Increased space for the actions area */
+    overflow: hidden; /* Ensure content doesn't overflow */
+}
+
+/* Context-specific: reduce content right margin so actions can be closer */
+.context-panel .item-card .item-card-info {
+    margin-right: 56px; /* increased gap between toggle and trash icon */
+}
+
+.item-card-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-card-desc {
+    font-size: 11px;
+    color: var(--overlay1);
+    white-space: normal;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    margin-top: 1px;
+}
+
+/* Specific styling for library panel descriptions to wrap text and show more content */
+.library-panel .item-card-desc {
+    white-space: normal; /* Allow text wrapping */
+    display: -webkit-box;
+    -webkit-line-clamp: 5; /* Show up to 5 lines to accommodate ~30 words */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    max-height: calc(1.2em * 5); /* 5 lines worth of height */
+}
+
+.item-card-toggles {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+/* Delete button hidden by default, shown on hover (original) */
+.item-card-actions {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-card);
+    padding: 0 4px 0 8px;
+    gap: 4px;
+    z-index: 2;
+    transition:
+        background 0.15s ease,
+        opacity 0.15s ease,
+        visibility 0.15s ease;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.item-card:hover .item-card-actions,
+.skill-card:hover .item-card-actions {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Panel-specific overrides */
+/* Middle panel (contexts): keep the delete/action button absolutely positioned at the right */
+.context-panel .item-card .item-card-actions {
+    position: absolute !important;
+    right: -2px !important; /* slight outside offset so icon hugs the card edge */
+    top: 0 !important; /* span full card height */
+    height: 100% !important; /* make container full-height to allow perfect centering */
+    display: flex !important;
+    align-items: center !important; /* vertically center contents */
+    justify-content: center !important;
+    background: transparent !important;
+    padding: 0 !important;
+    gap: 8px !important; /* internal gap between multiple action buttons */
+    z-index: 60 !important; /* ensure above other elements */
+}
+
+/* Increase the horizontal space between content/toggle and trash */
+.context-panel .item-card .item-card-info {
+    margin-right: 140px !important; /* larger reserved space so toggle and trash don't crowd */
+}
+
+/* Ensure the trash button stays compact */
+.context-panel .item-card .item-card-actions .btn-icon {
+    width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    font-size: 18px !important;
+}
+
+/* Keep the icon compact so the glyph sits near the edge */
+.context-panel .item-card .item-card-actions .btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0 1px; /* minimal horizontal padding */
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+}
+
+/* For context panel - remove right padding on the card so the actions can approach edge */
+.context-panel .item-card {
+    padding-right: 0;
+}
+
+/* Ensure the icon area stays compact so the visual glyph appears near the edge */
+.context-panel .item-card .item-card-actions .btn-icon {
+    padding: 0 2px;
+}
+
+/* Make the clickable area of the trash icon slightly inset but small so icon appears near the edge */
+.context-panel .item-card .item-card-actions .btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0 2px; /* small horizontal padding so icon doesn't clip */
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+}
+
+/* For context panel (middle panel) - make context cards' right padding very small so actions sit as close as possible to the edge */
+.context-panel .item-card {
+    padding-right: 2px; /* minimal right padding */
+}
+
+/* Right panel (skills): place actions into the grid's third column */
+.skills-panel .skill-card .item-card-actions {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-card);
+    padding: 0 4px 0 8px;
+    gap: 4px;
+    z-index: 3;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        background 0.15s ease,
+        opacity 0.15s ease,
+        visibility 0.15s ease;
+}
+
+/* Skills panel: position actions (remove button) at the right edge of each skill card */
+.skills-panel .skill-card .item-card-actions {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-card);
+    padding: 0 4px 0 8px;
+    gap: 4px;
+    z-index: 3;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        background 0.15s ease,
+        opacity 0.15s ease,
+        visibility 0.15s ease;
+}
+
+.skills-panel .skill-card:hover .item-card-actions {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ═══════════════ TOGGLE SWITCH ═══════════════ */
+
+.toggle-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: 50px; /* Standard width */
+}
+
+.toggle-switch label {
+    font-size: 9px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--overlay0);
+    cursor: pointer;
+    user-select: none;
+    /* Hide only textual labels inside toggle-switch; visual slider uses class .toggle-slider */
+    display: none;
+}
+
+/* Replace with a safer rule so we don't hide the visual slider label */
+.toggle-switch .label-text {
+    display: none; /* reserved for optional text label elements */
+}
+
+.toggle-switch input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-slider {
+    width: 40px; /* Standard width */
+    height: 20px; /* Increased height - more massive */
+    background: var(--surface2);
+    border-radius: 20px; /* Adjusted for new height */
+    position: relative;
+    cursor: pointer;
+    transition: background 0.25s ease;
+    flex-shrink: 0;
+    z-index: 11; /* Higher z-index to ensure visibility */
+    display: block; /* Ensure the label is displayed as a block element */
+}
+
+.toggle-slider::after {
+    content: "";
+    position: absolute;
+    width: 16px; /* Increased size */
+    height: 16px; /* Increased size */
+    background: var(--text);
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition:
+        transform 0.25s ease,
+        background 0.25s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--green);
+}
+
+.toggle-switch input:checked + .toggle-slider::after {
+    transform: translateX(
+        20px
+    ); /* Adjusted for new width (40px slider - 16px thumb - 4px padding = 20px) */
+    background: var(--crust);
+}
+
+/* Mode toggle slider (Always / Dynamic) */
+.toggle-mode {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+}
+
+.toggle-mode input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-mode-slider {
+    width: 130px;
+    height: 30px;
+    background: var(--surface0);
+    border-radius: 15px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.25s ease;
+    overflow: hidden;
+    border: 1px solid var(--surface1);
+    z-index: 11;
+    display: block;
+}
+
+/* Sliding thumb with text inside */
+.toggle-mode-slider span {
+    position: absolute;
+    width: 65px;
+    height: 24px;
+    background: var(--blue);
+    border-radius: 12px;
+    top: 2px;
+    left: 2px;
+    transition:
+        transform 0.25s ease,
+        background 0.25s ease;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--crust);
+    letter-spacing: 0.2px;
+}
+
+.toggle-mode-slider span::before {
+    content: "Always";
+}
+
+.toggle-mode input:checked + .toggle-mode-slider span {
+    transform: translateX(61px);
+    background: var(--mauve);
+}
+
+.toggle-mode input:checked + .toggle-mode-slider span::before {
+    content: "Dynamic";
+}
+
+/* Container for mode toggle in title line */
+.skill-card-mode-toggle {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Ensure the visual toggle labels cannot be hidden by other generic label rules */
+.toggle-slider {
+    display: block !important;
+    pointer-events: auto;
+}
+
+.toggle-mode-slider {
+    display: flex !important;
+    pointer-events: auto;
+}
+
+/* ═══════════════ CONTEXT PANEL (Middle) ═══════════════ */
+
+.context-panel .panel-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.context-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.settings-profile-selector {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.settings-profile-selector select {
+    flex: 1;
+}
+
+.settings-profile-selector .btn-danger {
+    flex-shrink: 0;
+}
+
+/* Adjust context action centering and spacing for consistency */
+.context-panel .item-card > .item-card-actions {
+    position: absolute !important;
+    right: 8px !important;
+    top: 0 !important;
+    height: 100% !important; /* span full card height */
+    transform: none !important; /* no translateY-based centering */
+    display: flex !important;
+    align-items: center !important; /* vertical center */
+    justify-content: center !important;
+    gap: 10px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    z-index: 999 !important;
+}
+
+/* Move toggle button to the right side with 6px gap from trash icon */
+.context-panel .item-card {
+    position: relative !important;
+    padding-right: 0 !important;
+}
+
+/* Position the toggle button at the right edge of the card */
+.context-panel .item-card .item-card-toggles {
+    position: absolute !important;
+    right: 0px !important; /* Position right edge of toggle: 0px from right edge of card */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    z-index: 10 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Keep the main content area with appropriate margin to make room for toggle and trash icon */
+.context-panel .item-card .item-card-info {
+    margin-right: 98px !important; /* Space for trash icon width (32px) + gap (6px) + toggle width (60px) */
+}
+
+/* Position the trash icon to the left of the toggle with 6px gap */
+.context-panel .item-card .item-card-actions {
+    position: absolute !important;
+    right: 66px !important; /* Position right edge of trash: toggle left edge (0px + 60px) + 6px gap */
+    top: 50% !important; /* Vertical center reference */
+    transform: translateY(-50%) !important; /* Perfect vertical centering */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    z-index: 20 !important;
+    pointer-events: auto !important;
+}
+
+.context-panel .item-card .item-card-actions .btn-icon {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    font-size: 18px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+}
+
+/* End CLEAN FINAL OVERRIDE */
+
+/* ═══════════════ TOAST NOTIFICATIONS ═══════════════ */
+
+.toast-container {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 4000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.toast {
+    background: var(--surface0);
+    border: 1px solid var(--surface1);
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    font-size: 12px;
+    color: var(--text);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    animation: slideInRight 0.3s ease;
+    max-width: 320px;
+}
+
+.toast.success {
+    border-left: 3px solid var(--green);
+}
+
+.toast.error {
+    border-left: 3px solid var(--red);
+}
+
+.toast.info {
+    border-left: 3px solid var(--blue);
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ═══════════════ STATUS BAR ═══════════════ */
+
+.status-bar {
+    background: var(--mantle);
+    border-top: 1px solid var(--surface0);
+    padding: 4px 16px;
+    font-size: 11px;
+    color: var(--overlay1);
+    display: flex;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.status-bar .status-left {
+    display: flex;
+    gap: 16px;
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ═══════════════ LIBRARY PANEL (Left) ═══════════════ */
+
+.library-panel .panel-header {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.library-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--surface0);
+    margin: 0 -14px;
+    padding: 0 14px;
+}
+
+.library-tab {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--overlay0);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    user-select: none;
+}
+
+.library-tab:hover {
+    color: var(--text);
+}
+
+.library-tab.active {
+    color: var(--lavender);
+    border-bottom-color: var(--lavender);
+}
+
+.library-actions {
+    display: flex;
+    gap: 6px;
+    padding: 8px 0;
+}
+
+.library-filters {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--surface0);
+    margin: 0 -14px;
+    padding: 6px 14px;
+}
+
+.filter-select {
+    background: var(--surface0);
+    border: 1px solid var(--surface1);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 11px;
+    padding: 3px 6px;
+    cursor: pointer;
+    outline: none;
+}
+
+.filter-select:hover {
+    border-color: var(--overlay0);
+}
+
+.btn-icon {
+    padding: 3px 6px !important;
+    min-width: 24px;
+    font-size: 12px;
+}
+
+.btn-icon.btn-success {
+    background: var(--green);
+    color: var(--base);
+}
+
+.btn-icon.btn-warning {
+    background: var(--yellow);
+    color: var(--base);
+}
+
+.fav-star {
+    cursor: pointer;
+    opacity: 0.4;
+    margin-right: 4px;
+    transition: opacity 0.15s;
+}
+
+.fav-star:hover {
+    opacity: 0.7;
+}
+
+.fav-star.active {
+    opacity: 1;
+    color: var(--yellow);
+}
+
+.status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--overlay1);
+    margin-right: 4px;
+}
+
+.status-dot.active {
+    background: var(--green);
+}
+
+/* ═══════════════ MISSING DESCRIPTION INDICATORS ═══════════════ */
+
+.item-card.missing-description,
+.skill-card.missing-description {
+    background: #ffcc02; /* Dark yellow background */
+    border: 1px solid #ffaa00;
+    position: relative;
+}
+
+.item-card.missing-description .item-card-name,
+.skill-card.missing-description .skill-card-name {
+    color: #000; /* Black text for better readability */
+}
+
+.item-card.missing-description:hover,
+.skill-card.missing-description:hover {
+    background: #ffd740; /* Lighter yellow background on hover */
+}
+
+/* On hover, make button backgrounds dark yellow with yellow background */
+.item-card.missing-description:hover .btn,
+.skill-card.missing-description:hover .btn {
+    background: #ffcc02 !important; /* Dark yellow background */
+    border-color: #ffaa00 !important;
+    color: #000; /* Black text for buttons */
+}
+
+.item-card.missing-description:hover .btn:hover,
+.skill-card.missing-description:hover .btn:hover {
+    background: #ffb300 !important; /* Even darker yellow on button hover */
+    color: #000; /* Black text for buttons */
+}
+
+/* Ensure the actions container background matches the card hover background */
+.item-card.missing-description .item-card-actions,
+.skill-card.missing-description .item-card-actions {
+    transition: background 0.15s ease;
+}
+
+.item-card.missing-description:hover .item-card-actions,
+.skill-card.missing-description:hover .item-card-actions {
+    background: #ffd740 !important; /* Same as card hover background */
+}
+
+.item-card.missing-description .item-card-name,
+.item-card.missing-description .item-card-desc,
+.skill-card.missing-description .skill-card-name,
+.skill-card.missing-description .skill-card-desc {
+    opacity: 0.9;
+}
+
+/* For context panel (middle panel) - make context cards look like skill cards by default */
+.context-panel .item-card {
+    background: var(--bg-card);
+}
+
+.context-panel .item-card:hover {
+    background: var(--bg-card-hover);
+}
+
+/* For context panel (middle panel) - ensure trash icon background matches context card hover background */
+.context-panel .item-card .item-card-actions {
+    transition: background 0.15s ease;
+}
+
+.context-panel .item-card:hover .item-card-actions {
+    background: var(--bg-card-hover) !important;
+}
+
+/* For skills panel (right panel) - ensure remove icon background matches skill card hover background */
+.skills-panel .skill-card .item-card-actions {
+    transition: background 0.15s ease;
+}
+
+.skills-panel .skill-card:hover .item-card-actions {
+    background: var(--bg-card-hover) !important;
+}
+
+.missing-desc-warning {
+    font-size: 10px;
+    color: #ff5252; /* Red color */
+    font-weight: 500;
+    margin-top: 2px;
+    text-align: left;
+}
+
+.btn-warning {
+    background: #ff9800;
+    color: var(--crust);
+    border-color: #ff9800;
+}
+
+.btn-warning:hover {
+    background: #f57c00;
+    border-color: #f57c00;
+}
+
+/* ═══════════════ PANEL SEPARATORS ═══════════════ */
+
+.panel-separator {
+    width: 4px;
+    background: var(--surface1);
+    cursor: col-resize;
+    user-select: none;
+    transition: background 0.2s;
+}
+
+.panel-separator:hover {
+    background: var(--surface2);
+}
+
+.panel-separator:active {
+    background: var(--lavender);
+}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
+    }
+
+    .panel-separator {
+        display: none;
+    }
+}
+
+/* Restore original skill-card layout (stacked, with left space for absolute toggles) */
+.skill-card {
+    display: flex;
+    flex-direction: column; /* Stack icon/name and description vertically */
+    gap: 6px; /* Smaller gap between sections */
+    padding: 10px 54px 10px 70px; /* Adjust left padding to make space for the toggles on the left */
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid var(--surface0);
+    margin-bottom: 4px;
+    background: var(--bg-card);
+    position: relative;
+    min-height: 48px; /* Ensure enough height for centered toggles */
+}
+
+.skill-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--surface2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.skill-card.disabled {
+    opacity: 0.4;
+}
+
+.skill-card-header {
+    display: flex;
+    align-items: flex-start; /* Align to top to accommodate toggles */
+    gap: 8px;
+    min-width: 0; /* Allow it to shrink */
+    overflow: hidden; /* Prevent overflow */
+    width: 100%; /* Ensure it fills the available width */
+}
+
+.skill-card-icon {
+    font-size: 14px; /* Smaller icon */
+    flex-shrink: 0;
+}
+
+.skill-card-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden; /* Ensure content doesn't overflow */
+    max-width: 100%; /* Ensure it doesn't exceed container width */
+}
+
+.skill-card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.skill-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.skill-card-title-row .token-badge {
+    flex-shrink: 0;
+}
+
+.skill-card-title-row .toggle-mode {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.skill-card-desc {
+    margin-top: 2px; /* Small margin to separate from the name */
+}
+
+/* For skills panel (right panel) - make description wrap like in library panel */
+.skills-panel .skill-card-desc {
+    font-size: 11px;
+    color: var(--overlay1);
+    white-space: normal;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 5; /* Match library panel - show up to 5 lines */
+    -webkit-box-orient: vertical;
+    line-height: 1.2;
+    max-height: calc(1.2em * 5); /* 5 lines worth of height */
+    margin-top: 2px; /* Space between name and description */
+}
+
+.skill-card-hint {
+    font-size: 10px;
+    color: var(--surface2);
+    font-style: italic;
+    margin-top: 2px;
+}
+
+/* Restore toggles to absolute left of skill-card (original approach) */
+.skill-card-toggles {
+    display: flex;
+    flex-direction: column; /* Stack toggles vertically */
+    gap: 6px; /* Reduced gap for vertical stacking */
+    flex-shrink: 0;
+    align-items: flex-start; /* Align toggles to the left */
+    position: absolute;
+    left: 14px; /* Position toggles on the left edge of the card */
+    top: 50%;
+    transform: translateY(-50%); /* Center vertically */
+    z-index: 10;
+}
+
+/* ═══════════════ MODAL / DIALOG OVERLAYS ═══════════════ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(17, 17, 27, 0.85);
+    backdrop-filter: blur(4px);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity 0.2s ease,
+        visibility 0.2s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-overlay#skill-editor-modal .modal {
+    width: 90vw;
+    max-width: 1000px;
+    height: 85vh;
+    max-height: 800px;
+    background: var(--mantle);
+    border-radius: var(--radius);
+    border: 1px solid var(--surface1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--surface0);
+    flex-shrink: 0;
+}
+
+.modal-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: var(--overlay0);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+}
+
+.modal-close:hover {
+    background: var(--surface1);
+    color: var(--text);
+}
+
+.modal-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    overflow: hidden;
+}
+
+.modal-sidebar {
+    background: var(--crust);
+    border-right: 1px solid var(--surface0);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.modal-sidebar label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--subtext0);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modal-sidebar .search-input {
+    margin-bottom: 8px;
+}
+
+.modal-main {
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ═══════════════ DIALOG BOX (Simple Modals) ═══════════════ */
+
+#dialog-overlay .dialog {
+    background: var(--mantle);
+    border-radius: var(--radius);
+    border: 1px solid var(--surface1);
+    padding: 24px;
+    min-width: 320px;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: dialogSlideIn 0.2s ease;
+}
+
+@keyframes dialogSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+#dialog-overlay .dialog h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 16px 0;
+}
+
+#dialog-overlay .dialog input[type="text"] {
+    width: 100%;
+    background: var(--surface0);
+    border: 1px solid var(--surface1);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    margin-bottom: 12px;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+#dialog-overlay .dialog input[type="text"]:focus {
+    border-color: var(--lavender);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+#dialog-overlay .dialog input[type="text"]::placeholder {
+    color: var(--overlay0);
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.dialog-actions .btn {
+    padding: 8px 16px;
+    font-size: 12px;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    color: var(--overlay0);
+    margin-bottom: 4px;
+}
+
+.form-group input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+}
+
+/* ═══════════════ LOADING OVERLAY ═══════════════ */
+
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.loading-content {
+    text-align: center;
+    color: var(--text);
+}
+
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--surface1);
+    border-top-color: var(--lavender);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.loading-hint {
+    font-size: 12px;
+    color: var(--overlay0);
+}
+
+/* ═══════════════ SEARCH ROW ═══════════════ */
+
+.search-row {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.search-row .search-input {
+    flex: 1;
+}
+
+.search-mode-btn {
+    background: var(--surface0);
+    border: 1px solid var(--surface1);
+    opacity: 0.6;
+    transition: all 0.15s;
+}
+
+.search-mode-btn:hover {
+    opacity: 0.8;
+}
+
+.search-mode-btn.active {
+    background: var(--lavender);
+    color: var(--base);
+    opacity: 1;
+    border-color: var(--lavender);
+}
+
+/* ═══════════════ SKILL EDITOR COMPONENTS ═══════════════ */
+
+.modal-sidebar-header {
+    margin-bottom: 12px;
+}
+
+.modal-file-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+.modal-editor {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal-editor-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--surface0);
+    background: var(--crust);
+    flex-shrink: 0;
+}
+
+.modal-editor-filename {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+.modal-editor-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: var(--base);
+}
+
+.modal-editor-empty {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--overlay0);
+    font-size: 14px;
+    text-align: center;
+}
+
+#editor-textarea {
+    width: 100%;
+    height: 100%;
+    background: var(--base);
+    border: none;
+    color: var(--text);
+    padding: 16px;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
+}
+
+#editor-textarea:focus {
+    background: var(--base);
+}
+
+/* ═══════════════ FILE TREE VIEW ═══════════════ */
+
+.tree-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.tree-node {
+    position: relative;
+}
+
+.tree-node ul {
+    list-style: none;
+    margin: 0;
+    padding-left: 20px;
+}
+
+.tree-node.collapsed > ul,
+.tree-node.collapsed > .tree-children {
+    display: none;
+}
+
+.tree-node.leaf > .tree-item .tree-toggler {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tree-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.tree-item:hover {
+    background: var(--surface0);
+}
+
+.tree-item.active {
+    background: var(--accent-dim);
+    border: 1px solid var(--lavender);
+}
+
+.tree-toggler {
+    font-size: 10px;
+    color: var(--overlay0);
+    width: 14px;
+    text-align: center;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+.tree-node.collapsed > .tree-item .tree-toggler {
+    transform: rotate(-90deg);
+}
+
+.file-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.file-name {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-actions-menu {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.tree-item:hover .file-actions-menu {
+    opacity: 1;
+}
+
+.file-actions-menu .btn-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+}
