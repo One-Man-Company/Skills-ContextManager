@@ -1,19 +1,18 @@
 import importlib.util
-import os
+import json
 import sys
-from pprint import pprint
 
 
 def run_test():
     print("--- Testing list_available_skills logic from mcp_server.py ---")
     try:
-        # Dynamically load the module to avoid caching and ensure fresh config reading
         spec = importlib.util.spec_from_file_location("mcp_server", "./mcp_server.py")
+        if spec is None or spec.loader is None:
+            print("Error: Could not load mcp_server.py")
+            return
         mcp_server_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mcp_server_module)
 
-        # Recreate the exact logic from list_available_skills tool
-        # (only returns name, description, and mode - not the internal path)
         items = []
         for skill in mcp_server_module._get_enabled_skills():
             items.append(
@@ -26,12 +25,13 @@ def run_test():
                     "type": skill["type"],
                 }
             )
-        skills = sorted(items, key=lambda x: x["name"])
-
-        pprint(skills)
-        print("\n--- Test complete ---")
+        result = sorted(items, key=lambda x: x["name"])
+        print(json.dumps(result, indent=2))
     except Exception as e:
         print(f"An error occurred during execution: {e}", file=sys.stderr)
+        import traceback
+
+        traceback.print_exc()
 
 
 if __name__ == "__main__":

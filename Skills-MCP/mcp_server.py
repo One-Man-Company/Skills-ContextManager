@@ -71,8 +71,9 @@ LEGACY_SKILLS_DIR = LEGACY_RESOURCES_DIR / "skills"
 
 # Convention: Each skill is a separate folder inside context folders or SKILLS_DIR
 # Files:
-# - 'description.md': Metadata ONLY. Used by list_available_skills to help AI choose. NEVER loaded in context.
-# - 'skill.md': The main system prompt/instruction. Loaded first in context.
+# - 'skill.md': The main system prompt/instruction with YAML frontmatter containing 'description'.
+#              The description field is used by list_available_skills to help AI choose.
+#              NEVER loaded in context (only the body after frontmatter is loaded).
 # - All other files: Loaded alphabetically (root first, then subfolders).
 
 mcp = FastMCP(name="Structured Skills Hub")
@@ -188,14 +189,77 @@ def _get_skill_dir(name: str) -> pathlib.Path:
 
 
 def _get_discovery_description(skill_dir: pathlib.Path) -> str:
-    """Reads description.md for the list_available_skills tool."""
-    desc_path = skill_dir / "description.md"
-    if not desc_path.exists():
+    """Reads description from skill.md/SKILL.md frontmatter for the list_available_skills tool."""
+    import re
+
+    skill_md_path = skill_dir / "skill.md"
+    if not skill_md_path.exists():
+        skill_md_path = skill_dir / "SKILL.md"
+    if not skill_md_path.exists():
         return "No description provided."
     try:
-        return desc_path.read_text(encoding="utf-8").strip()
+        content = skill_md_path.read_text(encoding="utf-8")
+        frontmatter_match = re.match(r"^---\n([\s\S]*?)\n---", content)
+        if frontmatter_match:
+            frontmatter = frontmatter_match.group(1)
+
+            desc_line_match = re.search(
+                r"^description:\s*(.*)$", frontmatter, re.MULTILINE
+            )
+            if desc_line_match:
+                desc_value = desc_line_match.group(1).strip()
+
+                if desc_value.startswith('"'):
+                    remaining = frontmatter[desc_line_match.end() :]
+                    full_desc = desc_value[1:]
+
+                    end_match = re.search(r'"\s*$', full_desc)
+                    if end_match:
+                        full_desc = full_desc[: end_match.start()]
+                    else:
+                        for line in remaining.split("\n"):
+                            end_match = re.search(r'"\s*$', line)
+                            if end_match:
+                                full_desc += "\n" + line[: end_match.start()]
+                                break
+                            else:
+                                full_desc += "\n" + line
+
+                    full_desc = full_desc.replace('\\"', '"').replace("\\'", "'")
+                    return " ".join(full_desc.split())
+
+                elif desc_value.startswith("'"):
+                    remaining = frontmatter[desc_line_match.end() :]
+                    full_desc = desc_value[1:]
+
+                    end_match = re.search(r"'\s*$", full_desc)
+                    if end_match:
+                        full_desc = full_desc[: end_match.start()]
+                    else:
+                        for line in remaining.split("\n"):
+                            end_match = re.search(r"'\s*$", line)
+                            if end_match:
+                                full_desc += "\n" + line[: end_match.start()]
+                                break
+                            else:
+                                full_desc += "\n" + line
+
+                    full_desc = full_desc.replace('\\"', '"').replace("\\'", "'")
+                    return " ".join(full_desc.split())
+
+                else:
+                    return desc_value.strip()
+
+        return "No description provided."
     except Exception:
-        return "Error reading description.md"
+        return "Error reading skill.md frontmatter"
+
+
+def _strip_frontmatter(content: str) -> str:
+    """Strip YAML frontmatter from content if present."""
+    import re
+
+    return re.sub(r"^---\n[\s\S]*?\n---\n*", "", content)
 
 
 def _is_text_file(file_path: pathlib.Path) -> bool:
@@ -272,11 +336,14 @@ def get_default_skills() -> str:
         skill_dir = skill["path"]
         context_parts = [f"<<START skill {skill['name']}>>\n"]
 
-        # 1. Load skill.md
+        # 1. Load skill.md/SKILL.md (strip frontmatter)
         skill_md = skill_dir / "skill.md"
+        if not skill_md.exists():
+            skill_md = skill_dir / "SKILL.md"
         if skill_md.exists():
             try:
                 content = skill_md.read_text(encoding="utf-8")
+                content = _strip_frontmatter(content)
                 context_parts.append(f"# Main Skill File: skill.md\n\n{content}\n")
             except Exception:
                 context_parts.append("# Main Skill File: skill.md (Error reading)\n")
@@ -286,7 +353,7 @@ def get_default_skills() -> str:
             [
                 f
                 for f in skill_dir.iterdir()
-                if f.is_file() and f.name not in ("skill.md", "description.md")
+                if f.is_file() and f.name.lower() not in ("skill.md", "description.md")
             ]
         )
         if root_files:
@@ -315,8 +382,8 @@ def get_default_skills() -> str:
 def load_full_skill_context(name: str) -> str:
     """
     Load the skill context.
-    Order: 1. skill.md -> 2. Root files (A-Z) -> 3. Subfolders (A-Z).
-    Excludes: description.md
+    Order: 1. skill.md (body only, frontmatter excluded) -> 2. Root files (A-Z) -> 3. Subfolders (A-Z).
+    Excludes: description.md (legacy), frontmatter from skill.md
     Wraps content in <<START skill>> ... << END skill>>.
 
     Usage:
@@ -327,11 +394,14 @@ def load_full_skill_context(name: str) -> str:
 
     context_parts = [f"<<START skill {name}>>\n"]
 
-    # 1. Load skill.md
+    # 1. Load skill.md/SKILL.md (strip frontmatter)
     skill_md = skill_dir / "skill.md"
+    if not skill_md.exists():
+        skill_md = skill_dir / "SKILL.md"
     if skill_md.exists():
         try:
             content = skill_md.read_text(encoding="utf-8")
+            content = _strip_frontmatter(content)
             context_parts.append(f"# Main Skill File: skill.md\n\n{content}\n")
         except Exception:
             context_parts.append(f"# Main Skill File: skill.md (Error reading)\n")
@@ -343,7 +413,7 @@ def load_full_skill_context(name: str) -> str:
         [
             f
             for f in skill_dir.iterdir()
-            if f.is_file() and f.name not in ("skill.md", "description.md")
+            if f.is_file() and f.name.lower() not in ("skill.md", "description.md")
         ]
     )
     if root_files:
@@ -358,7 +428,7 @@ def load_full_skill_context(name: str) -> str:
         for subdir in root_subdirs:
             sub_files = sorted([f for f in subdir.rglob("*") if f.is_file()])
             for f in sub_files:
-                if f.name == "description.md":
+                if f.name.lower() == "description.md":
                     continue
                 context_parts.append(_read_file_safe(f, skill_dir))
 
@@ -369,7 +439,7 @@ def load_full_skill_context(name: str) -> str:
 @mcp.tool
 def list_skill_files(name: str) -> List[str]:
     """
-    List all files in a skill folder (excluding description.md).
+    List all files in a skill folder (excluding description.md as legacy file).
 
     Usage:
     Call this tool to see what files are inside a specific skill.
@@ -378,7 +448,7 @@ def list_skill_files(name: str) -> List[str]:
     skill_dir = _get_skill_dir(name)
     files = []
     for file_path in sorted(skill_dir.rglob("*")):
-        if file_path.is_file() and file_path.name != "description.md":
+        if file_path.is_file() and file_path.name.lower() != "description.md":
             relative = file_path.relative_to(skill_dir).as_posix()
             files.append(relative)
     return files
@@ -388,6 +458,7 @@ def list_skill_files(name: str) -> List[str]:
 def load_skill_file(name: str, relative_path: str) -> str:
     """
     Load a specific file from a skill (text only).
+    Frontmatter is stripped from skill.md when loading.
 
     Usage:
     Call this tool to read a single file from a skill.
@@ -403,7 +474,15 @@ def load_skill_file(name: str, relative_path: str) -> str:
         raise ValueError(f"File not found: {relative_path}")
 
     if file_path.name == "description.md":
-        return "Error: description.md is a metadata file and cannot be loaded directly."
+        return "Error: description.md is a legacy metadata file and cannot be loaded directly. Description is now in skill.md frontmatter."
+
+    if file_path.name.lower() == "skill.md":
+        try:
+            content = file_path.read_text(encoding="utf-8")
+            content = _strip_frontmatter(content)
+            return f"### File: {relative_path}\n\n{content}\n"
+        except Exception:
+            return f"### File: {relative_path} (Error reading)\n"
 
     return _read_file_safe(file_path, skill_dir)
 
