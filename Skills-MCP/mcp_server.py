@@ -436,15 +436,8 @@ def load_full_skill_context(name: str) -> str:
     return "\n".join(context_parts)
 
 
-@mcp.tool
-def list_skill_files(name: str) -> List[str]:
-    """
-    List all files in a skill folder (excluding description.md as legacy file).
-
-    Usage:
-    Call this tool to see what files are inside a specific skill.
-    Example: list_skill_files(name="python-expert")
-    """
+def _list_skill_files_internal(name: str) -> List[str]:
+    """Internal helper: List all files in a skill folder."""
     skill_dir = _get_skill_dir(name)
     files = []
     for file_path in sorted(skill_dir.rglob("*")):
@@ -454,16 +447,8 @@ def list_skill_files(name: str) -> List[str]:
     return files
 
 
-@mcp.tool
-def load_skill_file(name: str, relative_path: str) -> str:
-    """
-    Load a specific file from a skill (text only).
-    Frontmatter is stripped from skill.md when loading.
-
-    Usage:
-    Call this tool to read a single file from a skill.
-    Example: load_skill_file(name="python-expert", relative_path="cheatsheet.md")
-    """
+def _load_skill_file_internal(name: str, relative_path: str) -> str:
+    """Internal helper: Load a specific file from a skill."""
     skill_dir = _get_skill_dir(name)
     file_path = (skill_dir / relative_path).resolve()
 
@@ -474,7 +459,7 @@ def load_skill_file(name: str, relative_path: str) -> str:
         raise ValueError(f"File not found: {relative_path}")
 
     if file_path.name == "description.md":
-        return "Error: description.md is a legacy metadata file and cannot be loaded directly. Description is now in skill.md frontmatter."
+        return "Error: description.md is a legacy metadata file and cannot be loaded directly."
 
     if file_path.name.lower() == "skill.md":
         try:
