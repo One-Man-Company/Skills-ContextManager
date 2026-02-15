@@ -13,16 +13,15 @@ let currentLibraryTab = "skills";
 let libraryFavFilter = false;
 let libraryActiveFilter = null; // null = all, true = active, false = inactive
 let favorites = JSON.parse(localStorage.getItem('library-favorites') || '{}');
-let aiSettings = { url: "", model: "", hasApiKey: false, maskedApiKey: "" };
 let librarySearchInDesc = false;
 
 // ── Editor State ──
-let editorContext = null; // { contextName, skillName } or { skillName } for library
-let editorSource = null; // 'context' or 'library'
+let editorContext = null;
+let editorSource = null;
 let editorFiles = [];
 let editorCurrentFile = null;
 let editorDirty = false;
-let editorExpandedFolders = new Set(); // Track expanded folders in tree
+let editorExpandedFolders = new Set();
 
 // ════════════════════════════════════════════ API HELPERS ══════════════════════════════
 
@@ -623,7 +622,7 @@ function renderSkillsPanel() {
           </div>
         </div>
         ${item.description ? `<div class="skill-card-desc">${escapeHtml(item.description)}</div>` : ""}
-        ${item.hasDescription === false ? `<div class="missing-desc-warning">description.md is missing</div>` : ""}
+        ${item.hasDescription === false ? `<div class="missing-desc-warning">description in frontmatter is missing</div>` : ""}
         <div class="skill-card-toggles" onclick="event.stopPropagation()">
           <div class="toggle-switch" title="Enable / Disable">
             <input type="checkbox" id="${title}-enable-${escapeAttr(item.name)}" ${isEnabled ? "checked" : ""}
@@ -1014,7 +1013,7 @@ function renderLibrary() {
            draggable="${hasDescription}"
            ondragstart="${hasDescription ? "onDragStart(event, 'library', '" + escapeAttr(skill.name) + "', 'skill')" : "return false;"}"
            ondblclick="openSkillEditor('library', null, '${escapeAttr(skill.name)}')"
-           title="${hasDescription ? "Drag to move to a context or double-click to edit" : "description.md is missing - create one to enable drag and drop"}">
+           title="${hasDescription ? "Drag to move to a context or double-click to edit" : "description in frontmatter is missing - add one to enable drag and drop"}">
         <div class="item-card-info">
           <div class="item-card-name">
             <span class="fav-star ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('skill', '${escapeAttr(skill.name)}')">${isFav ? '★' : '☆'}</span>
@@ -1022,10 +1021,9 @@ function renderLibrary() {
             🧩 ${escapeHtml(skill.name)}
           </div>
           ${skill.description ? `<div class="item-card-desc">${escapeHtml(skill.description)}</div>` : ""}
-          ${!hasDescription ? `<div class="missing-desc-warning">description.md is missing</div>` : ""}
+          ${!hasDescription ? `<div class="missing-desc-warning">description in frontmatter is missing</div>` : ""}
         </div>
         <div class="item-card-actions">
-          ${!hasDescription ? `<button class="btn btn-sm btn-warning" onclick="event.stopPropagation(); createDescriptionMd('${escapeAttr(skill.name)}')">Create</button><button class="btn btn-sm" onclick="event.stopPropagation(); showGenerateDescDialog('${escapeAttr(skill.name)}')">Generate</button>` : ""}
           <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); deleteLibrarySkill('${escapeAttr(skill.name)}')" title="Delete Skill">🗑</button>
         </div>
       </div>`;
@@ -1156,7 +1154,7 @@ function renderWorkflows() {
            draggable="${hasDescription}"
            ondragstart="${hasDescription ? "onDragStart(event, 'library', '" + escapeAttr(workflow.name) + "', 'workflow')" : "return false;"}"
            ondblclick="openWorkflowEditor('${escapeAttr(workflow.name)}')"
-           title="${hasDescription ? "Drag to move to a context or double-click to edit" : "description.md is missing - create one to enable drag and drop"}">
+           title="${hasDescription ? "Drag to move to a context or double-click to edit" : "description in frontmatter is missing - add one to enable drag and drop"}">
         <div class="item-card-info">
           <div class="item-card-name">
             <span class="fav-star ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('workflow', '${escapeAttr(workflow.name)}')">${isFav ? '★' : '☆'}</span>
@@ -1164,10 +1162,9 @@ function renderWorkflows() {
             ⚙️ ${escapeHtml(workflow.name)}
           </div>
           ${workflow.description ? `<div class="item-card-desc">${escapeHtml(workflow.description)}</div>` : ""}
-          ${!hasDescription ? `<div class="missing-desc-warning">description.md is missing</div>` : ""}
+          ${!hasDescription ? `<div class="missing-desc-warning">description in frontmatter is missing</div>` : ""}
         </div>
         <div class="item-card-actions">
-          ${!hasDescription ? `<button class="btn btn-sm btn-warning" onclick="event.stopPropagation(); createWorkflowDescriptionMd('${escapeAttr(workflow.name)}')">Create</button><button class="btn btn-sm" onclick="event.stopPropagation(); showGenerateWorkflowDescDialog('${escapeAttr(workflow.name)}')">Generate</button>` : ""}
           <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); deleteLibraryWorkflow('${escapeAttr(workflow.name)}')" title="Delete Workflow">🗑</button>
         </div>
       </div>`;
@@ -1226,21 +1223,7 @@ async function deleteLibraryWorkflow(name) {
   }
 }
 
-async function createWorkflowDescriptionMd(name) {
-  try {
-    await api(
-      `/api/workflows/${encodeURIComponent(name)}/file/description.md`,
-      "PUT",
-      {
-        content: `# ${name}\n\nDescription of the ${name} workflow.`,
-      },
-    );
-    showToast(`Created description.md for "${name}"`, "success");
-    await loadWorkflows();
-  } catch (e) {
-    showToast(e.message, "error");
-  }
-}
+
 
 // ── Imports (UI) ──
 
@@ -1945,8 +1928,11 @@ async function moveSkillToContext(skillName, contextName) {
         const fileData = await api(
           `/api/skills/${encodeURIComponent(skillName)}/file/${encodeURIComponent(file.path)}`,
         );
+        const targetPath = file.path.toLowerCase() === "skill.md" || file.path.toLowerCase() === "skill.md"
+          ? "skill.md"
+          : file.path;
         await api(
-          `/api/contexts/${encodeURIComponent(contextName)}/skills/${encodeURIComponent(skillName)}/file/${encodeURIComponent(file.path)}`,
+          `/api/contexts/${encodeURIComponent(contextName)}/skills/${encodeURIComponent(skillName)}/file/${encodeURIComponent(targetPath)}`,
           "PUT",
           { content: fileData.content },
         );
@@ -1998,8 +1984,11 @@ async function moveWorkflowToContext(workflowName, contextName) {
         const fileData = await api(
           `/api/workflows/${encodeURIComponent(workflowName)}/file/${encodeURIComponent(file.path)}`,
         );
+        const targetPath = file.path.toLowerCase() === "workflow.md"
+          ? "workflow.md"
+          : file.path;
         await api(
-          `/api/contexts/${encodeURIComponent(contextName)}/workflows/${encodeURIComponent(workflowName)}/file/${encodeURIComponent(file.path)}`,
+          `/api/contexts/${encodeURIComponent(contextName)}/workflows/${encodeURIComponent(workflowName)}/file/${encodeURIComponent(targetPath)}`,
           "PUT",
           { content: fileData.content },
         );
@@ -2086,185 +2075,6 @@ function getFileIcon(filename) {
 async function refreshAll() {
   await Promise.all([loadContexts(), loadLibrary()]);
   showToast("Refreshed ✓", "success");
-}
-
-// ── Create Description.md Functionality ──
-
-async function createDescriptionMd(skillName) {
-  try {
-    const url = `/api/skills/${encodeURIComponent(skillName)}/file/description.md`;
-    await api(url, "PUT", {
-      content: `# ${skillName}\n\nDescription of the ${skillName} skill.\n\n## Purpose\nBrief description of what this skill does.\n\n## Usage\nInstructions on how to use this skill.`,
-    });
-
-    showToast(`description.md created for ${skillName}`, "success");
-
-    await loadLibrary();
-  } catch (e) {
-    showToast(`Failed to create description.md: ${e.message}`, "error");
-  }
-}
-
-async function loadAISettings() {
-  try {
-    aiSettings = await api('/api/ai-settings');
-  } catch (e) {
-    console.error('Failed to load AI settings:', e);
-    aiSettings = { url: '', model: '', hasApiKey: false, maskedApiKey: '' };
-  }
-}
-
-function showGenerateDescDialog(skillName) {
-  const hasKey = aiSettings.hasApiKey;
-  const maskedKey = aiSettings.maskedApiKey || '';
-  
-  showDialog(`
-    <h3>Generate Description for "${escapeHtml(skillName)}"</h3>
-    <p style="font-size: 12px; color: var(--overlay0); margin-bottom: 12px;">
-      AI will analyze skill files and generate description.md
-    </p>
-    <div class="form-group">
-      <label>AI Provider URL</label>
-      <input type="text" id="ai-url" value="${escapeHtml(aiSettings.url || 'https://openrouter.ai/api/v1/chat/completions')}" placeholder="AI API endpoint">
-    </div>
-    <div class="form-group">
-      <label>Model</label>
-      <input type="text" id="ai-model" value="${escapeHtml(aiSettings.model || 'openrouter/free')}" placeholder="Model name">
-    </div>
-    <div class="form-group">
-      <label>API Key ${hasKey ? '(saved - leave empty to keep)' : ''}</label>
-      <input type="password" id="ai-key" placeholder="${hasKey ? 'Leave empty to use saved key' : 'Your API key'}" autocomplete="off">
-      ${hasKey ? `<small style="color: var(--overlay0);">Saved: ${escapeHtml(maskedKey)}</small>` : ''}
-    </div>
-    <div class="dialog-actions">
-      <button class="btn" onclick="closeDialog()">Cancel</button>
-      <button class="btn btn-primary" onclick="generateDescription('${escapeAttr(skillName)}')">Generate</button>
-    </div>
-  `);
-}
-
-async function generateDescription(skillName) {
-  const url = document.getElementById('ai-url')?.value?.trim();
-  const model = document.getElementById('ai-model')?.value?.trim();
-  const apiKey = document.getElementById('ai-key')?.value?.trim();
-  
-  if (!url || !model) {
-    return showToast('URL and model are required', 'error');
-  }
-  
-  // Save settings to server (apiKey can be empty if already saved)
-  try {
-    await api('/api/ai-settings', 'POST', { url, model, apiKey });
-  } catch (e) {
-    return showToast('Failed to save settings: ' + e.message, 'error');
-  }
-  
-  closeDialog();
-  
-  // Show loading overlay
-  const loadingOverlay = document.createElement('div');
-  loadingOverlay.id = 'loading-overlay';
-  loadingOverlay.innerHTML = `
-    <div class="loading-content">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">Generating description...</div>
-      <div class="loading-hint">This may take a moment</div>
-    </div>
-  `;
-  document.body.appendChild(loadingOverlay);
-  
-  try {
-    const result = await api('/api/skills/generate-description', 'POST', {
-      skillName,
-      aiUrl: url,
-      model,
-      apiKey: apiKey || undefined // Let server use saved key if empty
-    });
-    
-    showToast(`Description generated for ${skillName}`, 'success');
-    await loadLibrary();
-    await loadAISettings(); // Refresh settings to get updated masked key
-  } catch (e) {
-    showToast(`Failed to generate: ${e.message}`, 'error');
-  } finally {
-    loadingOverlay.remove();
-  }
-}
-
-function showGenerateWorkflowDescDialog(workflowName) {
-  const hasKey = aiSettings.hasApiKey;
-  const maskedKey = aiSettings.maskedApiKey || '';
-  
-  showDialog(`
-    <h3>Generate Description for "${escapeHtml(workflowName)}"</h3>
-    <p style="font-size: 12px; color: var(--overlay0); margin-bottom: 12px;">
-      AI will analyze workflow files and generate description.md
-    </p>
-    <div class="form-group">
-      <label>AI Provider URL</label>
-      <input type="text" id="ai-url" value="${escapeHtml(aiSettings.url || 'https://openrouter.ai/api/v1/chat/completions')}" placeholder="AI API endpoint">
-    </div>
-    <div class="form-group">
-      <label>Model</label>
-      <input type="text" id="ai-model" value="${escapeHtml(aiSettings.model || 'openrouter/free')}" placeholder="Model name">
-    </div>
-    <div class="form-group">
-      <label>API Key ${hasKey ? '(saved - leave empty to keep)' : ''}</label>
-      <input type="password" id="ai-key" placeholder="${hasKey ? 'Leave empty to use saved key' : 'Your API key'}" autocomplete="off">
-      ${hasKey ? `<small style="color: var(--overlay0);">Saved: ${escapeHtml(maskedKey)}</small>` : ''}
-    </div>
-    <div class="dialog-actions">
-      <button class="btn" onclick="closeDialog()">Cancel</button>
-      <button class="btn btn-primary" onclick="generateWorkflowDescription('${escapeAttr(workflowName)}')">Generate</button>
-    </div>
-  `);
-}
-
-async function generateWorkflowDescription(workflowName) {
-  const url = document.getElementById('ai-url')?.value?.trim();
-  const model = document.getElementById('ai-model')?.value?.trim();
-  const apiKey = document.getElementById('ai-key')?.value?.trim();
-  
-  if (!url || !model) {
-    return showToast('URL and model are required', 'error');
-  }
-  
-  // Save settings to server
-  try {
-    await api('/api/ai-settings', 'POST', { url, model, apiKey });
-  } catch (e) {
-    return showToast('Failed to save settings: ' + e.message, 'error');
-  }
-  
-  closeDialog();
-  
-  const loadingOverlay = document.createElement('div');
-  loadingOverlay.id = 'loading-overlay';
-  loadingOverlay.innerHTML = `
-    <div class="loading-content">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">Generating description...</div>
-      <div class="loading-hint">This may take a moment</div>
-    </div>
-  `;
-  document.body.appendChild(loadingOverlay);
-  
-  try {
-    const result = await api('/api/workflows/generate-description', 'POST', {
-      workflowName,
-      aiUrl: url,
-      model,
-      apiKey: apiKey || undefined
-    });
-    
-    showToast(`Description generated for ${workflowName}`, 'success');
-    await loadWorkflows();
-    await loadAISettings();
-  } catch (e) {
-    showToast(`Failed to generate: ${e.message}`, 'error');
-  } finally {
-    loadingOverlay.remove();
-  }
 }
 
 // ══════════════════════════════ PANEL RESIZING ══════════════════════════════
@@ -2388,6 +2198,5 @@ function setupPanelResizing() {
   await loadContexts();
   await loadLibrary();
   await loadSettingsProfilesList();
-  await loadAISettings();
   setupPanelResizing();
 })();

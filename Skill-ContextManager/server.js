@@ -23,7 +23,6 @@ const upload = multer({ dest: os.tmpdir() });
 const BASE_STORAGE_PATH = path.join(os.homedir(), "contextmanager");
 const HUBS_BASE_PATH = path.join(BASE_STORAGE_PATH, "hubs");
 const MASTER_CONFIG_PATH = path.join(BASE_STORAGE_PATH, "master-config.json");
-const AI_SETTINGS_PATH = path.join(BASE_STORAGE_PATH, "ai-settings.json");
 
 // Current hub paths (will be set based on active hub)
 let STORAGE_PATH = path.join(HUBS_BASE_PATH, "MySkillHub");
@@ -66,35 +65,6 @@ function saveMasterConfig(config) {
     JSON.stringify(config, null, 2),
     "utf-8",
   );
-}
-
-// Load AI settings (url, model, apiKey) with secure file permissions
-function loadAISettings() {
-  if (fs.existsSync(AI_SETTINGS_PATH)) {
-    try {
-      const data = fs.readFileSync(AI_SETTINGS_PATH, "utf-8");
-      const settings = JSON.parse(data);
-      if (settings.apiKey) {
-        console.log("DEBUG: AI settings loaded (apiKey present)");
-      }
-      return settings;
-    } catch (e) {
-      console.error("Error reading AI settings:", e.message);
-    }
-  }
-  return { url: "", model: "", apiKey: "" };
-}
-
-// Save AI settings with secure file permissions (0600 = owner read/write only)
-function saveAISettings(settings) {
-  if (!fs.existsSync(BASE_STORAGE_PATH)) {
-    fs.mkdirSync(BASE_STORAGE_PATH, { recursive: true });
-  }
-  fs.writeFileSync(AI_SETTINGS_PATH, JSON.stringify(settings, null, 2), {
-    encoding: "utf-8",
-    mode: 0o600, // Only owner can read/write
-  });
-  console.log("DEBUG: AI settings saved with secure permissions");
 }
 
 // Update paths based on active hub
@@ -189,6 +159,134 @@ function saveConfig(config) {
 // Helper: sanitize name to folder
 function nameToFolder(name) {
   return name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "");
+}
+
+function extractSkillDescription(skillDir) {
+  const skillMdPath = path.join(skillDir, "skill.md");
+  const SKILLMdPath = path.join(skillDir, "SKILL.md");
+  const skillFile = fs.existsSync(skillMdPath) ? skillMdPath : (fs.existsSync(SKILLMdPath) ? SKILLMdPath : null);
+  
+  if (!skillFile) {
+    return { description: "", hasDescription: false };
+  }
+  try {
+    const content = fs.readFileSync(skillFile, "utf-8");
+    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (frontmatterMatch) {
+      const frontmatter = frontmatterMatch[1];
+      const descLineMatch = frontmatter.match(/^description:\s*(.*)$/m);
+      if (descLineMatch) {
+        let descValue = descLineMatch[1].trim();
+        const remainingStart = frontmatter.indexOf(descLineMatch[0]) + descLineMatch[0].length;
+        const remaining = frontmatter.slice(remainingStart);
+        
+        if (descValue.startsWith('"')) {
+          let fullDesc = descValue.slice(1);
+          const endMatch = fullDesc.match(/"\s*$/);
+          if (endMatch) {
+            fullDesc = fullDesc.slice(0, endMatch.index);
+          } else {
+            for (const line of remaining.split('\n')) {
+              const lineEndMatch = line.match(/"\s*$/);
+              if (lineEndMatch) {
+                fullDesc += '\n' + line.slice(0, lineEndMatch.index);
+                break;
+              }
+              fullDesc += '\n' + line;
+            }
+          }
+          fullDesc = fullDesc.replace(/\\"/g, '"').replace(/\\'/g, "'");
+          return { description: fullDesc.replace(/\s+/g, ' ').trim(), hasDescription: true };
+        } else if (descValue.startsWith("'")) {
+          let fullDesc = descValue.slice(1);
+          const endMatch = fullDesc.match(/'\s*$/);
+          if (endMatch) {
+            fullDesc = fullDesc.slice(0, endMatch.index);
+          } else {
+            for (const line of remaining.split('\n')) {
+              const lineEndMatch = line.match(/'\s*$/);
+              if (lineEndMatch) {
+                fullDesc += '\n' + line.slice(0, lineEndMatch.index);
+                break;
+              }
+              fullDesc += '\n' + line;
+            }
+          }
+          fullDesc = fullDesc.replace(/\\"/g, '"').replace(/\\'/g, "'");
+          return { description: fullDesc.replace(/\s+/g, ' ').trim(), hasDescription: true };
+        } else {
+          return { description: descValue, hasDescription: true };
+        }
+      }
+    }
+    return { description: "", hasDescription: false };
+  } catch (_) {
+    return { description: "", hasDescription: false };
+  }
+}
+
+function extractWorkflowDescription(workflowDir) {
+  const workflowMdPath = path.join(workflowDir, "workflow.md");
+  const WORKFLOWMdPath = path.join(workflowDir, "WORKFLOW.md");
+  const workflowFile = fs.existsSync(workflowMdPath) ? workflowMdPath : (fs.existsSync(WORKFLOWMdPath) ? WORKFLOWMdPath : null);
+  
+  if (!workflowFile) {
+    return { description: "", hasDescription: false };
+  }
+  try {
+    const content = fs.readFileSync(workflowFile, "utf-8");
+    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (frontmatterMatch) {
+      const frontmatter = frontmatterMatch[1];
+      const descLineMatch = frontmatter.match(/^description:\s*(.*)$/m);
+      if (descLineMatch) {
+        let descValue = descLineMatch[1].trim();
+        const remainingStart = frontmatter.indexOf(descLineMatch[0]) + descLineMatch[0].length;
+        const remaining = frontmatter.slice(remainingStart);
+        
+        if (descValue.startsWith('"')) {
+          let fullDesc = descValue.slice(1);
+          const endMatch = fullDesc.match(/"\s*$/);
+          if (endMatch) {
+            fullDesc = fullDesc.slice(0, endMatch.index);
+          } else {
+            for (const line of remaining.split('\n')) {
+              const lineEndMatch = line.match(/"\s*$/);
+              if (lineEndMatch) {
+                fullDesc += '\n' + line.slice(0, lineEndMatch.index);
+                break;
+              }
+              fullDesc += '\n' + line;
+            }
+          }
+          fullDesc = fullDesc.replace(/\\"/g, '"').replace(/\\'/g, "'");
+          return { description: fullDesc.replace(/\s+/g, ' ').trim(), hasDescription: true };
+        } else if (descValue.startsWith("'")) {
+          let fullDesc = descValue.slice(1);
+          const endMatch = fullDesc.match(/'\s*$/);
+          if (endMatch) {
+            fullDesc = fullDesc.slice(0, endMatch.index);
+          } else {
+            for (const line of remaining.split('\n')) {
+              const lineEndMatch = line.match(/'\s*$/);
+              if (lineEndMatch) {
+                fullDesc += '\n' + line.slice(0, lineEndMatch.index);
+                break;
+              }
+              fullDesc += '\n' + line;
+            }
+          }
+          fullDesc = fullDesc.replace(/\\"/g, '"').replace(/\\'/g, "'");
+          return { description: fullDesc.replace(/\s+/g, ' ').trim(), hasDescription: true };
+        } else {
+          return { description: descValue, hasDescription: true };
+        }
+      }
+    }
+    return { description: "", hasDescription: false };
+  } catch (_) {
+    return { description: "", hasDescription: false };
+  }
 }
 
 // Helper: list files recursively
@@ -371,17 +469,10 @@ app.get("/api/contexts/:name/skills", (req, res) => {
         enabled: true,
         mode: "always_loaded",
       };
-      // Read description.md if exists
-      const descPath = path.join(contextDir, e.name, "description.md");
-      let description = "";
-      const hasDescription = fs.existsSync(descPath);
-      if (hasDescription) {
-        try {
-          description = fs.readFileSync(descPath, "utf-8").trim();
-        } catch (_) {}
-      }
+      const { description, hasDescription } = extractSkillDescription(
+        path.join(contextDir, e.name)
+      );
 
-      // Calculate tokens
       const skillPath = path.join(contextDir, e.name);
       const tokens = calculateTokensRecursive(skillPath);
 
@@ -434,15 +525,7 @@ app.get("/api/skills", (req, res) => {
     .filter((e) => e.isDirectory())
     .map((e) => {
       const skillPath = path.join(SKILLS_PATH, e.name);
-      const descPath = path.join(skillPath, "description.md");
-      let description = "";
-      const hasDescription = fs.existsSync(descPath);
-
-      if (hasDescription) {
-        try {
-          description = fs.readFileSync(descPath, "utf-8").trim();
-        } catch (_) {}
-      }
+      const { description, hasDescription } = extractSkillDescription(skillPath);
 
       const stats = fs.statSync(skillPath);
       const created = stats.birthtime;
@@ -550,21 +633,15 @@ app.post("/api/skills", (req, res) => {
     return res.status(409).json({ error: "Skill already exists" });
 
   fs.mkdirSync(skillDir, { recursive: true });
-  // Create default files
-  fs.writeFileSync(
-    path.join(skillDir, "description.md"),
-    `# ${name}\n\nDescription of the ${name} skill.`,
-    "utf-8",
-  );
   fs.writeFileSync(
     path.join(skillDir, "skill.md"),
-    `# ${name}\n\nMain skill instructions go here.`,
+    `---\nname: ${name}\ndescription: Description of the ${name} skill.\n---\n\n# ${name}\n\nMain skill instructions go here.`,
     "utf-8",
   );
 
   res.status(201).json({
     name,
-    description: `# ${name}\n\nDescription of the ${name} skill.`,
+    description: `Description of the ${name} skill.`,
   });
 });
 
@@ -838,348 +915,6 @@ app.post("/api/skills/import/skillssh", async (req, res) => {
   );
 });
 
-// GET /api/ai-settings – get saved AI settings
-app.get("/api/ai-settings", (req, res) => {
-  const settings = loadAISettings();
-  // Return masked API key for display
-  const maskedKey = settings.apiKey && settings.apiKey.length > 8 
-    ? settings.apiKey.slice(0, -8) + "********" 
-    : "";
-  res.json({
-    url: settings.url || "https://openrouter.ai/api/v1/chat/completions",
-    model: settings.model || "openrouter/free",
-    hasApiKey: !!settings.apiKey,
-    maskedApiKey: maskedKey,
-  });
-});
-
-// POST /api/ai-settings – save AI settings
-app.post("/api/ai-settings", (req, res) => {
-  const { url, model, apiKey } = req.body;
-  
-  if (!url || !model) {
-    return res.status(400).json({ error: "URL and model are required" });
-  }
-  
-  // If apiKey is empty or masked, keep the existing one
-  const currentSettings = loadAISettings();
-  let finalApiKey = apiKey;
-  if (!apiKey || apiKey.endsWith("********")) {
-    finalApiKey = currentSettings.apiKey;
-  }
-  
-  saveAISettings({ url, model, apiKey: finalApiKey });
-  res.json({ success: true });
-});
-
-// POST /api/skills/generate-description – generate description.md using AI
-app.post("/api/skills/generate-description", async (req, res) => {
-  const { skillName, aiUrl, model, apiKey } = req.body;
-
-  console.log(`DEBUG: Generate description request for skill: ${skillName}`);
-
-  // Use saved API key if not provided
-  const savedSettings = loadAISettings();
-  const finalApiKey = apiKey || savedSettings.apiKey;
-
-  if (!skillName || !aiUrl || !model || !finalApiKey) {
-    return res.status(400).json({ error: "Missing required parameters. Save API key first or provide it." });
-  }
-
-  const skillDir = path.join(SKILLS_PATH, skillName);
-  if (!fs.existsSync(skillDir)) {
-    console.log(`DEBUG: Skill not found at: ${skillDir}`);
-    return res.status(404).json({ error: "Skill not found" });
-  }
-
-  try {
-    const files = [];
-    const priorityFiles = ["skill.md", "agents.md", "SKILL.md", "AGENTS.md"];
-    const addedFiles = new Set();
-
-    const collectFiles = (dir, baseDir = "") => {
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-      for (const priorityFile of priorityFiles) {
-        const filePath = path.join(dir, priorityFile);
-        const relPath = baseDir ? `${baseDir}/${priorityFile}` : priorityFile;
-        if (fs.existsSync(filePath) && !addedFiles.has(relPath.toLowerCase())) {
-          try {
-            const content = fs.readFileSync(filePath, "utf-8");
-            files.unshift({ path: relPath, content });
-            addedFiles.add(relPath.toLowerCase());
-          } catch (e) {}
-        }
-      }
-
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-        const relativePath = baseDir ? `${baseDir}/${entry.name}` : entry.name;
-
-        if (
-          entry.isDirectory() &&
-          !entry.name.startsWith(".") &&
-          entry.name !== "node_modules"
-        ) {
-          collectFiles(fullPath, relativePath);
-        } else if (
-          entry.isFile() &&
-          !addedFiles.has(relativePath.toLowerCase())
-        ) {
-          const isPriority = priorityFiles
-            .map((f) => f.toLowerCase())
-            .includes(entry.name.toLowerCase());
-          if (!isPriority) {
-            try {
-              const content = fs.readFileSync(fullPath, "utf-8");
-              if (content.length < 50000 && !content.includes("\x00")) {
-                files.push({
-                  path: relativePath,
-                  content: content.slice(0, 10000),
-                });
-                addedFiles.add(relativePath.toLowerCase());
-              }
-            } catch (e) {}
-          }
-        }
-      }
-    };
-
-    collectFiles(skillDir);
-
-    console.log(`DEBUG: Collected ${files.length} files for context`);
-
-    let contextText = "";
-    const maxContext = 50000;
-    for (const file of files) {
-      const addition = `\n--- ${file.path} ---\n${file.content}\n`;
-      if (contextText.length + addition.length > maxContext) break;
-      contextText += addition;
-    }
-
-    if (!contextText) {
-      return res
-        .status(400)
-        .json({ error: "No readable files found in skill" });
-    }
-
-    const prompt = `Generate short (max 30 words) description for what is this skill for and when it should be used, so that AI agent could understand if he needs to use it by reading description. Output only pure description text. Never mention that this is Claude skill, even if it is written like that. You are not allowed to output any additional text.
-
-Skill files:
-${contextText}`;
-
-    const requestBody = {
-      model: model,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful assistant that generates skill documentation. Respond with only markdown content.",
-        },
-        { role: "user", content: prompt },
-      ],
-      max_tokens: 2000,
-      temperature: 0.7,
-    };
-
-    console.log(`DEBUG: Calling AI API: ${aiUrl} with model: ${model}`);
-
-    const fetchResponse = await fetch(aiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${finalApiKey}`,
-        "HTTP-Referer": "https://contextmanager.local",
-        "X-Title": "Context Manager",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    const responseText = await fetchResponse.text();
-    console.log(`DEBUG: AI API response status: ${fetchResponse.status}`);
-
-    if (!fetchResponse.ok) {
-      console.error(`DEBUG: AI API error response: ${responseText}`);
-      return res.status(500).json({
-        error: `AI API error: ${fetchResponse.status} - ${responseText.slice(0, 200)}`,
-      });
-    }
-
-    const aiResponse = JSON.parse(responseText);
-    const description = aiResponse.choices?.[0]?.message?.content;
-
-    if (!description) {
-      console.error(`DEBUG: No content in AI response:`, aiResponse);
-      return res.status(500).json({
-        error: "Failed to generate description - no content returned",
-      });
-    }
-
-    const descPath = path.join(skillDir, "description.md");
-    fs.writeFileSync(descPath, description, "utf-8");
-
-    console.log(`DEBUG: Description saved to: ${descPath}`);
-    res.json({ success: true, description });
-  } catch (e) {
-    console.error("Generate description error:", e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// POST /api/workflows/generate-description – generate description.md using AI
-app.post("/api/workflows/generate-description", async (req, res) => {
-  const { workflowName, aiUrl, model, apiKey } = req.body;
-
-  console.log(`DEBUG: Generate description request for workflow: ${workflowName}`);
-
-  // Use saved API key if not provided
-  const savedSettings = loadAISettings();
-  const finalApiKey = apiKey || savedSettings.apiKey;
-
-  if (!workflowName || !aiUrl || !model || !finalApiKey) {
-    return res.status(400).json({ error: "Missing required parameters. Save API key first or provide it." });
-  }
-
-  const workflowDir = path.join(WORKFLOWS_PATH, workflowName);
-  if (!fs.existsSync(workflowDir)) {
-    console.log(`DEBUG: Workflow not found at: ${workflowDir}`);
-    return res.status(404).json({ error: "Workflow not found" });
-  }
-
-  try {
-    const files = [];
-    const priorityFiles = ["workflow.md", "skill.md", "WORKFLOW.md", "SKILL.md"];
-    const addedFiles = new Set();
-
-    const collectFiles = (dir, baseDir = "") => {
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-      for (const priorityFile of priorityFiles) {
-        const filePath = path.join(dir, priorityFile);
-        const relPath = baseDir ? `${baseDir}/${priorityFile}` : priorityFile;
-        if (fs.existsSync(filePath) && !addedFiles.has(relPath.toLowerCase())) {
-          try {
-            const content = fs.readFileSync(filePath, "utf-8");
-            files.unshift({ path: relPath, content });
-            addedFiles.add(relPath.toLowerCase());
-          } catch (e) {}
-        }
-      }
-
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-        const relativePath = baseDir ? `${baseDir}/${entry.name}` : entry.name;
-
-        if (
-          entry.isDirectory() &&
-          !entry.name.startsWith(".") &&
-          entry.name !== "node_modules"
-        ) {
-          collectFiles(fullPath, relativePath);
-        } else if (
-          entry.isFile() &&
-          !addedFiles.has(relativePath.toLowerCase())
-        ) {
-          const isPriority = priorityFiles
-            .map((f) => f.toLowerCase())
-            .includes(entry.name.toLowerCase());
-          if (!isPriority) {
-            try {
-              const content = fs.readFileSync(fullPath, "utf-8");
-              if (content.length < 50000 && !content.includes("\x00")) {
-                files.push({
-                  path: relativePath,
-                  content: content.slice(0, 10000),
-                });
-                addedFiles.add(relativePath.toLowerCase());
-              }
-            } catch (e) {}
-          }
-        }
-      }
-    };
-
-    collectFiles(workflowDir);
-
-    console.log(`DEBUG: Collected ${files.length} files for context`);
-
-    let contextText = "";
-    const maxContext = 50000;
-    for (const file of files) {
-      const addition = `\n--- ${file.path} ---\n${file.content}\n`;
-      if (contextText.length + addition.length > maxContext) break;
-      contextText += addition;
-    }
-
-    if (!contextText) {
-      return res
-        .status(400)
-        .json({ error: "No readable files found in workflow" });
-    }
-
-    const prompt = `Generate short (max 30 words) description for what is this workflow for and when it should be used, so that AI agent could understand if he needs to use it by reading description. Output only pure description text. Never mention that this is Claude workflow, even if it is written like that. You are not allowed to output any additional text.
-
-Workflow files:
-${contextText}`;
-
-    const requestBody = {
-      model: model,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful assistant that generates workflow documentation. Respond with only markdown content.",
-        },
-        { role: "user", content: prompt },
-      ],
-      max_tokens: 2000,
-      temperature: 0.7,
-    };
-
-    console.log(`DEBUG: Calling AI API: ${aiUrl} with model: ${model}`);
-
-    const fetchResponse = await fetch(aiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${finalApiKey}`,
-        "HTTP-Referer": "https://contextmanager.local",
-        "X-Title": "Context Manager",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    const responseText = await fetchResponse.text();
-    console.log(`DEBUG: AI API response status: ${fetchResponse.status}`);
-
-    if (!fetchResponse.ok) {
-      console.error(`DEBUG: AI API error response: ${responseText}`);
-      return res.status(500).json({
-        error: `AI API error: ${fetchResponse.status} - ${responseText.slice(0, 200)}`,
-      });
-    }
-
-    const aiResponse = JSON.parse(responseText);
-    const description = aiResponse.choices?.[0]?.message?.content;
-
-    if (!description) {
-      console.error(`DEBUG: No content in AI response:`, aiResponse);
-      return res.status(500).json({
-        error: "Failed to generate description - no content returned",
-      });
-    }
-
-    const descPath = path.join(workflowDir, "description.md");
-    fs.writeFileSync(descPath, description, "utf-8");
-
-    console.log(`DEBUG: Description saved to: ${descPath}`);
-    res.json({ success: true, description });
-  } catch (e) {
-    console.error("Generate description error:", e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // POST /api/skills/import/files – upload folder contents
 app.post("/api/skills/import/files", upload.array("files"), (req, res) => {
   console.log(
@@ -1275,15 +1010,7 @@ app.get("/api/workflows", (req, res) => {
     .filter((e) => e.isDirectory())
     .map((e) => {
       const workflowPath = path.join(WORKFLOWS_PATH, e.name);
-      const descPath = path.join(workflowPath, "description.md");
-      let description = "";
-      const hasDescription = fs.existsSync(descPath);
-
-      if (hasDescription) {
-        try {
-          description = fs.readFileSync(descPath, "utf-8").trim();
-        } catch (_) {}
-      }
+      const { description, hasDescription } = extractWorkflowDescription(workflowPath);
 
       const stats = fs.statSync(workflowPath);
       const created = stats.birthtime;
@@ -1389,21 +1116,15 @@ app.post("/api/workflows", (req, res) => {
     return res.status(409).json({ error: "Workflow already exists" });
 
   fs.mkdirSync(workflowDir, { recursive: true });
-  // Create default files
-  fs.writeFileSync(
-    path.join(workflowDir, "description.md"),
-    `# ${name}\n\nDescription of the ${name} workflow.`,
-    "utf-8",
-  );
   fs.writeFileSync(
     path.join(workflowDir, "workflow.md"),
-    `# ${name}\n\nMain workflow instructions go here.`,
+    `---\nname: ${name}\ndescription: Description of the ${name} workflow.\n---\n\n# ${name}\n\nMain workflow instructions go here.`,
     "utf-8",
   );
 
   res.status(201).json({
     name,
-    description: `# ${name}\n\nDescription of the ${name} workflow.`,
+    description: `Description of the ${name} workflow.`,
   });
 });
 
@@ -1757,18 +1478,7 @@ app.post("/api/contexts/:contextName/skills", (req, res) => {
     return res.status(409).json({ error: "Skill already exists" });
 
   fs.mkdirSync(skillDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(skillDir, "description.md"),
-    `# ${name}\n\nDescription of the ${name} skill.`,
-    "utf-8",
-  );
-  fs.writeFileSync(
-    path.join(skillDir, "skill.md"),
-    `# ${name}\n\nMain skill instructions go here.`,
-    "utf-8",
-  );
 
-  // Add toggle state
   if (!context.skills) context.skills = {};
   context.skills[name] = { enabled: true, mode: "always_loaded" };
   saveConfig(config);
@@ -1843,17 +1553,10 @@ app.get("/api/contexts/:contextName/workflows", (req, res) => {
         enabled: true,
         mode: "always_loaded",
       };
-      // Read description.md if exists
-      const descPath = path.join(contextDir, e.name, "description.md");
-      let description = "";
-      const hasDescription = fs.existsSync(descPath);
-      if (hasDescription) {
-        try {
-          description = fs.readFileSync(descPath, "utf-8").trim();
-        } catch (_) {}
-      }
+      const { description, hasDescription } = extractWorkflowDescription(
+        path.join(contextDir, e.name)
+      );
 
-      // Calculate tokens
       const tokens = calculateTokensRecursive(workflowPath);
 
       return {
@@ -2055,18 +1758,7 @@ app.post("/api/contexts/:contextName/workflows", (req, res) => {
     return res.status(409).json({ error: "Workflow already exists" });
 
   fs.mkdirSync(workflowDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(workflowDir, "description.md"),
-    `# ${name}\n\nDescription of the ${name} workflow.`,
-    "utf-8",
-  );
-  fs.writeFileSync(
-    path.join(workflowDir, "workflow.md"),
-    `# ${name}\n\nMain workflow instructions go here.`,
-    "utf-8",
-  );
 
-  // Add toggle state
   if (!context.workflows) context.workflows = {};
   context.workflows[name] = { enabled: true, mode: "always_loaded" };
   saveConfig(config);
