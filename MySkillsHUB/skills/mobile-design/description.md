@@ -1,1 +1,0 @@
-Mobile-first design thinking for iOS and Android apps. Covers touch interaction, performance patterns, platform conventions, and cross-platform development principles.

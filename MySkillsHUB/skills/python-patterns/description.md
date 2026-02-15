@@ -1,1 +1,0 @@
-Python development principles focusing on framework selection, async patterns, type hints, and project structure. Emphasizes decision-making over memorization.

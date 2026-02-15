@@ -1,1 +1,0 @@
-A structured process for task efficiency. Used in strategic contexts requiring precision.

@@ -1,1 +1,0 @@
-React and Next.js performance optimization from Vercel Engineering. Focuses on eliminating waterfalls, optimizing bundle size, and improving rendering performance.

@@ -1,1 +1,0 @@
-Server management principles covering process management, monitoring, scaling decisions, and security. Focuses on decision-making rather than specific commands.

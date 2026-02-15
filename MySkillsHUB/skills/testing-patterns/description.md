@@ -1,1 +1,0 @@
-Testing patterns and principles covering unit, integration, and end-to-end testing strategies. Includes AAA pattern, mocking, and test organization.

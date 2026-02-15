@@ -1,1 +1,0 @@
-Pragmatic coding standards for clean, maintainable code. Focuses on simplicity, single responsibility, and avoiding over-engineering.

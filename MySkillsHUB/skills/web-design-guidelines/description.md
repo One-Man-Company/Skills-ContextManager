@@ -1,1 +1,0 @@
-Review UI code for Web Interface Guidelines compliance. Fetches latest guidelines from GitHub and audits for accessibility, performance, and best practices.

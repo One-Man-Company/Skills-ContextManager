@@ -1,1 +1,0 @@
-Node.js development principles focusing on framework selection, async patterns, security, and architecture. Emphasizes decision-making over memorization.
